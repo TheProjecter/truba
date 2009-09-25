@@ -6,21 +6,13 @@
 ;; agreeing to be bound by the terms of this license. You must not
 ;; remove this notice, or any other, from this software.
 
-(require 'clojure.test)
+(ns
+  #^{:author "Krešimir Šojat"
+     :license {:name "Eclipse Public License 1.0"
+               :url  "http://opensource.org/licenses/eclipse-1.0.php"}
+     :doc
+      "Command line arguments parsing library for Clojure."}
+  neman.cli)
 
-(def tests
-  ['neman.cli.test])
 
-(defn run-tests []
-  (let [found-ns (atom [])]
-    (doseq [t tests]
-      (try
-        (require :reload-all t)
-        (swap! found-ns conj t)
 
-        (catch Exception e
-          (println (.getMessage e)))))
-
-    (apply clojure.test/run-tests @found-ns)))
-
-(run-tests)
