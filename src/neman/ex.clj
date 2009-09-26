@@ -9,12 +9,10 @@
 (ns
   #^{:author "Krešimir Šojat"
      :license {:name "Eclipse Public License 1.0"
-               :url  "http://opensource.org/licenses/eclipse-1.0.php"}}
-  neman.cli.test
-  (:require [neman.cli :as cli])
-  (:use clojure.test))
+               :url  "http://opensource.org/licenses/eclipse-1.0.php"}
+     :apidoc
+      "Helpers for exception handling."}
+  neman.ex)
 
-(deftest split-command-line
-  (are [a b] (= a (cli/split-line b))
-    [["-x"] ["-y" "a" "b" "c"]] ["-x" "-y" "a" "b" "c"]
-    [["-x" "a=3"]] ["-xa=3"]))
+(defn throwf [& args]
+  (throw (Exception. (apply format args))))

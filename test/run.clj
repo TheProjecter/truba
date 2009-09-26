@@ -9,7 +9,9 @@
 (require 'clojure.test)
 
 (def tests
-  ['neman.cli.test])
+  ['neman.cli.test
+   'neman.cli.desc.test
+   'neman.main.test])
 
 (defn run-tests []
   (let [found-ns (atom [])]

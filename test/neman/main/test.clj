@@ -10,11 +10,7 @@
   #^{:author "Krešimir Šojat"
      :license {:name "Eclipse Public License 1.0"
                :url  "http://opensource.org/licenses/eclipse-1.0.php"}}
-  neman.cli.test
-  (:require [neman.cli :as cli])
+  neman.main.test
+  (:require [neman.main :as main])
   (:use clojure.test))
 
-(deftest split-command-line
-  (are [a b] (= a (cli/split-line b))
-    [["-x"] ["-y" "a" "b" "c"]] ["-x" "-y" "a" "b" "c"]
-    [["-x" "a=3"]] ["-xa=3"]))
