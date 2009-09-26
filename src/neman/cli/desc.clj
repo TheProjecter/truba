@@ -64,9 +64,6 @@
 
       (and (= 2 (count p)) (or (= num \+) (= num \*)))
         (throwf "Can't use '*' and '+' with pair properties: %s" x)
-      ; XXX remove this
-      ;(and sep (or (= 0 num) (= 1 num)))
-      ;  (throwf "You have to use '*' or '+' if separator is defined: %s" x)
 
       :else
         [p sep num])))
