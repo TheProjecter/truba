@@ -17,12 +17,16 @@
 (defn- glob->regex [s]
   (-> s
     (.replace "." "\\.")
+    (.replace "^" "\\^")
     (.replace "*" "(\\w*)*?")
     (.replace "?" "\\w")))
 
 (defn glob-pattern [s]
   (-> s
     glob->regex re-pattern))
+
+(defn glob-match [glob-str str]
+  (not (nil? (re-matches (glob-pattern glob-str) str))))
 
 ; XXX replace / with sep
 (def sep

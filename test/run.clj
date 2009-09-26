@@ -9,7 +9,8 @@
 (require 'clojure.test)
 
 (def tests
-  ['neman.cli.test
+  ['neman.glob.test
+   'neman.cli.test
    'neman.cli.desc.test
    'neman.main.test])
 
