@@ -42,7 +42,7 @@
       [x nil]
 
     (string? x)
-      [(second (re-find #"&(.)" x)) (.replace x "&" "")]
+      [(second (re-find #"&(.)" x)) (.toLowerCase (.replace x "&" ""))]
 
     :else
       (throwf "Unknown name description: %s" x)))

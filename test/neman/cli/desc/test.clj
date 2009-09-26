@@ -17,7 +17,8 @@
 (deftest create-option-name
   (are [a b] (= a (desc/to-option-name b))
     [nil "help"]    "help"
-    ["v" "version"] "&version")
+    ["v" "version"] "&version"
+    ["H" "help"]    "&Help")
   (is
     (thrown? Exception (desc/to-option-name "abc123")))
   (is
