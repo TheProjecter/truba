@@ -10,6 +10,39 @@
   #^{:author "Krešimir Šojat"
      :license {:name "Eclipse Public License 1.0"
                :url  "http://opensource.org/licenses/eclipse-1.0.php"}}
-  truba.main)
+  truba.main
+  (:use [neman.main :only [defmain]]))
 
-(println "Hello world!")
+(defmain
+  :header
+    "Truba project automation tool"
+
+  :options
+    ["Build Options"
+     {:name "verbose"   :desc "Show verbose output"}
+     {:name "&queue"    :desc "Add task to execution queue" :args "<task-pattern>*"}
+     {:name "&skip"     :desc "Skip tasks" :args "<task-pattern>*"}
+     {:name "&describe" :desc "Describe tasks"}
+     {:name "&file"     :desc "Use file instead of the default trubafile.clj"}
+     {:name "D"         :desc "Set build property" :args "<property>=<value>"}
+
+     "Runner configuration"
+     {:name "&jobs"   :desc "Number of parallel jobs" :args "<num>"}
+     {:name "&runner" :desc "Configure task runner" :args "<args>*"}]
+
+  :footer
+    ["When using -q or -s options, task names can use standard glob syntax.
+    This lets you execute multiple tasks with single command like:\n"
+
+    "truba -q *:clean\n"
+
+    "That will execute clean task in every sub-module.\n
+    For more info visit http://code.google.com/p/truba/\n
+    Copyright (c) 2009. Krešimir Šojat. All rights reserved."]
+
+  :version
+    "Truba v0.1"
+
+  [{:keys [queue skip describe file D] :as opts} _]
+    (println opts _)
+    (println "Hello from main"))
