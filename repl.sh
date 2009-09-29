@@ -4,7 +4,7 @@ BREAK_CHARS="(){}[],^%$#@\"\";:''|\\"
 COMPLETITIONS=".completitions"
 RLWRAP='rlwrap --remember -c -b $BREAK_CHARS'
 
-CP='lib/*:src'
+CP='lib/*:src:test'
 
 if [ -f $COMPLETITIONS ]; then
     RLWRAP="$RLWRAP -f $COMPLETITIONS"
@@ -16,4 +16,4 @@ else
     CMD="java"
 fi
 
-$CMD -cp "$CP:." clojure.main -r
+$CMD -cp "$CP" clojure.main -r

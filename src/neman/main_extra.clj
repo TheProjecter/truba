@@ -6,25 +6,20 @@
 ;; agreeing to be bound by the terms of this license. You must not
 ;; remove this notice, or any other, from this software.
 
-(ns run
-  (:require clojure.test))
+(in-ns 'neman.main)
 
-(def tests
-  ['neman.glob.test
-   'neman.cli.test
-   'neman.cli.desc.test
-   'neman.main.test])
+(defmacro create-extra-1 [_ [bindings & body]]
+  `(fn [& ~bindings]
+     ~@body))
 
-(defn run-tests []
-  (let [found-ns (atom [])]
-    (doseq [t tests]
-      (try
-        (require :reload-all t)
-        (swap! found-ns conj t)
+(defmacro create-extra-2 [specs [bidings & body]]
+  `(fn [& args#]
+     (let [[f# s#] (parse args# (:options specs#))]
+       ~@body)))
 
-        (catch Exception e
-          (println (.getMessage e)))))
+(defmacro create-extra [specs block]
+  (if (empty? specs)
+    `(create-extra-1 ~specs ~block)
+    `(create-extra-2 ~specs ~block)))
 
-    (apply clojure.test/run-tests @found-ns)))
 
-(run-tests)
