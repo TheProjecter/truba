@@ -42,6 +42,7 @@
   (if (symbol? x) (name x) x))
 
 (defn block-seq [xs]
+  (println xs)
   (map (fn [[n & xs]] [(as-name n) (split-prelude xs)]) xs))
 
 (defn block-map [xs]
@@ -102,32 +103,40 @@
 
 (defmacro defmain [& [f s & r :as xs]]
   (let [; Collect metadata and doc string
+        z (println "hi")
         [m xs] (split-meta xs)
-
+        z (println "hi again")
         ; Split main prelude and body
         [specs xs] (split-prelude xs)
+        z (println "hi 3")
 
         ; Wrap single body definition inside :default block and copy
         ; specs to this block
         xs (if (seq? (first xs))
              xs
              (list (concat [:default] (concat (apply concat specs) xs))))
+        z (println "hi 4")
 
         ; Get all subcommand blocks.
+        ;z (println (-> xs import-commands))
+        ;z (println "====================")
+        ;z (println (-> xs import-commands block-seq))
         blocks (-> xs
                  import-commands block-seq block-map)
+        z (println "hi 5")
 
         [extras blocks] (dissoc-get blocks :extra)
-        extras (map
-                 (fn [x]
-                   `(create-extra ~x))
-                 extras)
+        z (println "hi")
+        ;extras (map
+        ;         (fn [x]
+        ;           `(create-extra ~x))
+        ;         extras)
 
-        [default blocks] (dissoc-get blocks :default)
-        default `(create-default ~@default)]
+        ;[default blocks] (dissoc-get blocks :default)
+        ];default `(create-default ~@default)]
     `(do
        ; Define entry point function
-       (main-fn [& args#]
+       #_(main-fn [& args#]
          (let [[command# args#] (split-command args#)]
            (apply ~default args#)))
 

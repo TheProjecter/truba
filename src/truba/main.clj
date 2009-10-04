@@ -44,5 +44,5 @@
     "Truba v0.1"
 
   [{:keys [queue skip describe file D] :as opts} _]
-    (println opts _)
-    (println "Hello from main"))
+    #_(println opts _)
+    #_(println "Hello from main"))

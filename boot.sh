@@ -28,12 +28,6 @@ IVY_GZ="$CACHE_DIR/ivy.tar.gz"
 IVY_JAR="$CACHE_DIR/ivy.jar"
 IVY_CACHE_DIR="$CACHE_DIR/ivy2"
 
-# While Truba is using Clojure 1.0.0, it needs clojure.test for unit tests
-# that is included in Clojure 1.1.0alpha.
-
-CLOJURE_GIT="git://github.com/richhickey/clojure.git"
-CLOJURE_CACHE_DIR="$CACHE_DIR/testlib"
-
 #
 # Prepare cache and lib directories.
 #
@@ -60,17 +54,6 @@ function init_ivy {
     fi
 }
 
-function get_testlib {
-    if [ ! -e $CLOJURE_CACHE_DIR ]; then
-        git clone --quiet --depth 1 $CLOJURE_GIT $CLOJURE_CACHE_DIR
-    fi
-    jar cf "$LIB_DIR/clojure-test-1.0.0.jar" \
-        -C "$CLOJURE_CACHE_DIR/src/clj" clojure/test.clj \
-        -C "$CLOJURE_CACHE_DIR/src/clj" clojure/template.clj \
-        -C "$CLOJURE_CACHE_DIR/src/clj" clojure/stacktrace.clj \
-        -C "$CLOJURE_CACHE_DIR/src/clj" clojure/walk.clj
-}
-
 #
 # Prepare Truba dependencies.
 #
@@ -87,4 +70,3 @@ function get_deps {
 }
 
 get_deps
-get_testlib

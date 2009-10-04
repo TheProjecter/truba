@@ -12,7 +12,7 @@
               :url  "http://opensource.org/licenses/eclipse-1.0.php"}}
  neman.glob.test
  (:require [neman.glob :as glob])
- (:use clojure.test))
+ (:use truba.unittest))
 
 (deftest glob-string-match
   (are [a b c] (= a (glob/glob-match b c))

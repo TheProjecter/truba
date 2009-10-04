@@ -7,7 +7,7 @@
 ;; remove this notice, or any other, from this software.
 
 (ns run
-  (:require clojure.test))
+  (:use truba.unittest))
 
 (def tests
   ['neman.glob.test
@@ -25,6 +25,11 @@
         (catch Exception e
           (println (.getMessage e)))))
 
-    (apply clojure.test/run-tests @found-ns)))
+    (doseq [n @found-ns]
+      (println "Running tests in" n)
+      (let [test-fns (filter test? (vals (ns-publics n)))]
+        (print-reports
+          (filter #(not= :pass (:status %))
+            (mapcat (fn [t] (t)) test-fns)))))))
 
 (run-tests)

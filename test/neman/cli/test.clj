@@ -12,7 +12,7 @@
                :url  "http://opensource.org/licenses/eclipse-1.0.php"}}
   neman.cli.test
   (:require [neman.cli :as cli])
-  (:use clojure.test))
+  (:use truba.unittest))
 
 (deftest split-command-line
   (are [a b] (= a (cli/split-line b))

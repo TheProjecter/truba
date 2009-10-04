@@ -12,7 +12,7 @@
               :url  "http://opensource.org/licenses/eclipse-1.0.php"}}
  neman.cli.desc.test
  (:require [neman.cli.desc :as desc])
- (:use clojure.test))
+ (:use truba.unittest))
 
 (deftest create-option-name
   (are [a b] (= a (desc/to-option-name b))
