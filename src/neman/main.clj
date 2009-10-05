@@ -12,8 +12,7 @@
                :url  "http://opensource.org/licenses/eclipse-1.0.php"}}
   neman.main
   (:use [neman.cli :only [parse usage-str help-str]]
-        [neman.cli.desc :only [convert-specs]])
-  (:load "main_extra" "main_default"))
+        [neman.cli.desc :only [convert-specs]]))
 
 (defn split-prelude [xs]
   (loop [[f s & r :as xs] xs opts {}]
@@ -36,25 +35,13 @@
       [{} xs]))
 
 (defn split-command [[f & r :as args]]
-  (if (or (empty? f) (.startsWith f "-")) ["" args] [f r]))
+  (if (or (empty? f) (.startsWith f "-")) [:default args] [f r]))
 
 (defn as-name [x]
   (if (symbol? x) (name x) x))
 
 (defn block-seq [xs]
-  (println xs)
   (map (fn [[n & xs]] [(as-name n) (split-prelude xs)]) xs))
-
-(defn block-map [xs]
-  (reduce
-    (fn [m [k v]]
-      (update-in m [k]
-        (if (= k :extra) conj (fn [_ v] v)) v))
-    {}
-    xs))
-
-(defn dissoc-get [map key]
-  [(get map key) (dissoc map key)])
 
 (defmacro main-fn [bindings & body]
   `(let [main-ns# *ns*]
@@ -73,72 +60,88 @@
   `(when (launch?)
      (apply ~'-main *command-line-args*)))
 
-(defn import-commands
-  "Import all commands defined using unquote or unquote-splicing syntax."
-  [xs]
-  (let [uq?  #(= 'clojure.core/unquote %)
-        uqs? #(= 'clojure.core/unquote-splicing %)]
-    (mapcat
-      (fn [[f s & _ :as x]]
-        (cond
-          (and (uq? f) (symbol? s))
-            (list
-              (var-get (resolve s)))
+; Command variant without command line options.
+(defmacro command-1 [_ [bindings & body]]
+  `(hash-map
+     :desc (fn [])
+     :body (fn [& ~bindings]
+             ~@body)))
 
-          (and (uq? f) (seq? s))
-            (map (fn [x] (var-get (resolve x))) s)
+; Command variant with command line options.
+(defmacro command-2 [specs [bindings & body]]
+  `(hash-map
+     :desc (fn [] ~specs)
+     :body (fn [& args#]
+             (let [specs#    (convert-specs ~specs)
+                   ~bindings (parse args# (:options specs#))]
+               ~@body))))
 
-          (and (uqs? f) (symbol? s))
-            (deref (var-get (resolve s)))
-
-          :else
-            x))
-        xs)))
-
-(defmacro command* [specs [bingings & body]])
+(defmacro command* [name specs xs]
+  `(vector
+     (as-name '~name)
+     ~(if (empty? specs)
+        `(command-1 ~specs ~xs) `(command-2 ~specs ~xs))))
 
 (defmacro command [name & xs]
   (let [[specs xs] (split-prelude xs)]
-    `(command* ~specs ~xs)))
+    `(command* ~name ~specs ~xs)))
+
+(defn extract-from-blocks [name blocks]
+  (reduce
+    (fn [res [f & _ :as block]]
+      (update-in res [(if (= f name) 0 1)] #(conj % block)))
+    [[] []]
+    blocks))
+
+(defn extract-extras [blocks]
+  (extract-from-blocks :extra blocks))
+
+(defn extract-extras [blocks]
+  (let [[extras blocks] (extract-from-blocks :extra blocks)]
+    ; Strip :extra from block
+    [(map (fn [[_ extra]] extra) extras) blocks]))
+
+(defn extract-unknown [blocks]
+  ; Strip :unknown and specs parts from block
+  (let [[[[_ [_ unknown]] & _] blocks] (extract-from-blocks :unknown blocks)]
+    [unknown blocks]))
 
 (defmacro defmain [& [f s & r :as xs]]
   (let [; Collect metadata and doc string
-        z (println "hi")
         [m xs] (split-meta xs)
-        z (println "hi again")
+
         ; Split main prelude and body
         [specs xs] (split-prelude xs)
-        z (println "hi 3")
 
         ; Wrap single body definition inside :default block and copy
         ; specs to this block
         xs (if (seq? (first xs))
              xs
              (list (concat [:default] (concat (apply concat specs) xs))))
-        z (println "hi 4")
 
         ; Get all subcommand blocks.
-        ;z (println (-> xs import-commands))
-        ;z (println "====================")
-        ;z (println (-> xs import-commands block-seq))
-        blocks (-> xs
-                 import-commands block-seq block-map)
-        z (println "hi 5")
+        blocks (block-seq xs)
 
-        [extras blocks] (dissoc-get blocks :extra)
-        z (println "hi")
-        ;extras (map
-        ;         (fn [x]
-        ;           `(create-extra ~x))
-        ;         extras)
+        ; Extract all blocks provide extra commands at runtime.
+        [extras blocks] (extract-extras blocks)
 
-        ;[default blocks] (dissoc-get blocks :default)
-        ];default `(create-default ~@default)]
+        ; Extract handler for unknown commands.
+        [unknown blocks] (extract-unknown blocks)
+        unknown (if unknown
+                  `(fn ~@unknown)
+                  `(fn [cmd# _#]
+                     (println "Unknown command:" cmd#)))
+
+        ; Convert blocks to commands (including the :default block).
+        commands (vec
+                   (map (fn [[f s]] `(command* ~f ~@s)) blocks))]
     `(do
        ; Define entry point function
-       #_(main-fn [& args#]
-         (let [[command# args#] (split-command args#)]
-           (apply ~default args#)))
+       (main-fn [& args#]
+         (let [[cmd# args#] (split-command args#)]
+           (if-let [cfn# (get-in (into {} ~commands) [cmd# :body])]
+             (apply cfn# args#)
+             (~unknown cmd# args#))))
 
        ; Generate class
        (gen-class :name ~(ns-name *ns*) :main true)

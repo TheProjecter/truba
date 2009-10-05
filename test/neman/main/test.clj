@@ -24,3 +24,45 @@
     [{:x 1 :y 2} (list 'a 'b 'c)] (list {:x 1 :y 2} 'a 'b 'c)
     [{:doc "test" :x 1 :y 2} (list 'a 'b 'c)] (list "test" {:x 1 :y 2} 'a 'b 'c)))
 
+(deftest split-command
+  (are [a b] (= a (m/split-command b))
+    [:default (list "-x" "-y")] (list "-x" "-y")
+    ["install" (list "-x")] (list "install" "-x")
+    ["install" nil] (list "install")))
+
+(deftest block-seq
+  (are [a b] (= a (m/block-seq b))
+    ; Simple single command block
+    (list
+      ["install" [{} (list [] 'a 'b)]])
+    (list
+      '(install [] a b))
+
+    ; Command name as string
+    (list
+      ["install" [{} (list [] 'a 'b)]])
+    (list
+      '("install" [] a b))
+
+    ; Command with extra options
+    (list
+      ["install" [{:desc "Desc"} '([] a b)]])
+    (list
+      '(install :desc "Desc" [] a b))
+
+    ; Default block with normal command
+    (list
+      [:default [{} '([] a b)]] ["install" [{} '([] c d)]])
+    (list
+      '(:default [] a b) '(install [] c d))))
+
+(deftest block-map
+  (are [a b] (= a (m/block-map (m/block-seq b)))
+    ; Normal command
+    {"install" [{} '([] a b)]} (list '(install [] a b))
+
+    ; Multiple 'extra' blocks
+    {:extra (list [{} '([] c d)] [{} '([] a b)])}
+    (list
+      '(:extra [] a b) '(:extra [] c d))))
+
