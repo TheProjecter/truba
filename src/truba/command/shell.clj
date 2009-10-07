@@ -16,6 +16,7 @@
 
 (def shell
   (command shell []
-    (in-ns 'user)
+    (in-ns 'truba.shell)
+    (refer 'clojure.core)
     (clojure.main/repl)))
 
