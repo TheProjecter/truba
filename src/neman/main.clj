@@ -106,6 +106,34 @@
   (let [[[[_ [_ unknown]] & _] blocks] (extract-from-blocks :unknown blocks)]
     [unknown blocks]))
 
+(defmacro create-extra [specs [bindings & body]]
+  (if (empty? specs)
+    `(fn [& args#]
+       (let [~bindings args#]
+         [args# (do ~@body)]))
+
+    `(fn [& args#]
+       (let [specs#    (convert-specs ~specs)
+             [f# s#]   (parse args# (:options specs#))
+             ~bindings [f# s#]]
+        (map
+          (fn [[name# {desc# :desc :as data#}]]
+            [name# (assoc data# :desc
+                     (fn []
+                       (update-in (desc#) [:options]
+                         (fn [x#]
+                           (concat (:options specs#) x#)))))])
+          (do
+            ~@body))))))
+
+(defn find-command [extras cname all-args]
+  (loop [[f & r :as xs] extras]
+    (when (seq xs)
+      (let [[args commands] (apply f all-args)]
+        (if-let [cmd (get (into {} commands) cname)]
+          [cmd args]
+          (recur r))))))
+
 (defmacro defmain [& [f s & r :as xs]]
   (let [; Collect metadata and doc string
         [m xs] (split-meta xs)
@@ -124,6 +152,8 @@
 
         ; Extract all blocks provide extra commands at runtime.
         [extras blocks] (extract-extras blocks)
+        extras (map
+                 (fn [x] `(create-extra ~@x)) extras)
 
         ; Extract handler for unknown commands.
         [unknown blocks] (extract-unknown blocks)
@@ -134,14 +164,20 @@
 
         ; Convert blocks to commands (including the :default block).
         commands (vec
-                   (map (fn [[f s]] `(command* ~f ~@s)) blocks))]
+                   (map (fn [[f s]] `(command* ~f ~@s)) blocks))
+        commands `(fn [& args#]
+                    [args# ~commands])
+
+        commands (vec
+                   (conj extras commands))]
     `(do
        ; Define entry point function
        (main-fn [& args#]
-         (let [[cmd# args#] (split-command args#)]
-           (if-let [cfn# (get-in (into {} ~commands) [cmd# :body])]
-             (apply cfn# args#)
-             (~unknown cmd# args#))))
+         (let [[cmd-name# all-args#] (split-command args#)
+               [cmd# args#] (find-command ~commands cmd-name# all-args#)]
+           (if cmd#
+             (apply (:body cmd#) args#)
+             (~unknown cmd-name# all-args#))))
 
        ; Generate class
        (gen-class :name ~(ns-name *ns*) :main true)
