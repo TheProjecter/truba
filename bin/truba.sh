@@ -46,6 +46,21 @@ if [ ! "$TRUBA_CONF" ]; then
     TRUBA_CONF="$TRUBA_HOME/etc/trubaconf.clj"
 fi
 
+# Configure rlwrap and use it if present.
+BREAK_CHARS="(){}[],^%$#@\"\";:''|\\"
+COMPLETITIONS=".completitions"
+RLWRAP='rlwrap --remember -c -b $BREAK_CHARS'
+
+if [ -f $COMPLETITIONS ]; then
+    RLWRAP="$RLWRAP -f $COMPLETITIONS"
+fi
+
+if which rlwrap; then
+    CMD="$RLWRAP java"
+else
+    CMD="java"
+fi
+
 # Split command line arguments prefixed with -J, they are for jvm not truba
 jvm_args=
 bin_args=
@@ -61,7 +76,7 @@ do
 done
 
 # Run truba
-java \
+$CMD \
     $jvm_args \
     -D_main=truba.main \
     -D_main.bin=$TRUBA_BIN \

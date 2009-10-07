@@ -11,6 +11,8 @@
      :license {:name "Eclipse Public License 1.0"
                :url  "http://opensource.org/licenses/eclipse-1.0.php"}}
   truba.main
+  (:require
+     (truba.command repl shell))
   (:use [neman.main :only [defmain]]))
 
 (defmain
@@ -40,9 +42,18 @@
     For more info visit http://code.google.com/p/truba/\n
     Copyright (c) 2009. Krešimir Šojat. All rights reserved."]
 
-  :version
-    "Truba v0.1"
+  (:default [opts #_{:keys [queue skip describe file D] :as opts} _]
+    (println opts "**" _)
+    (println "Hello from main"))
 
-  [{:keys [queue skip describe file D] :as opts} _]
-    #_(println opts _)
-    #_(println "Hello from main"))
+  (:extra []
+    (list
+      truba.command.repl/repl
+      truba.command.shell/shell))
+
+  (:extra
+     :options
+       [{:name "&file" :desc "Use file instead of the default trubafile.clj"}]
+
+     [{file :file} _]
+     (println "This will need to open trubafile and load extra commands from there.")))

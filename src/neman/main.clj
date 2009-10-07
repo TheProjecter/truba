@@ -106,6 +106,10 @@
   (let [[[[_ [_ unknown]] & _] blocks] (extract-from-blocks :unknown blocks)]
     [unknown blocks]))
 
+(defn extract-default [blocks]
+  (let [[[default & _] blocks] (extract-from-blocks :default blocks)]
+    [default blocks]))
+
 (defmacro create-extra [specs [bindings & body]]
   (if (empty? specs)
     `(fn [& args#]
@@ -149,6 +153,10 @@
 
         ; Get all subcommand blocks.
         blocks (block-seq xs)
+        blocks (if (empty? specs)
+                 blocks
+                 (let [[default blocks] (extract-default blocks)]
+                   (conj blocks (assoc-in default [1 0] specs))))
 
         ; Extract all blocks provide extra commands at runtime.
         [extras blocks] (extract-extras blocks)
@@ -162,6 +170,7 @@
                   `(fn [cmd# _#]
                      (println "Unknown command:" cmd#)))
 
+        ; XXX Clean this up.
         ; Convert blocks to commands (including the :default block).
         commands (vec
                    (map (fn [[f s]] `(command* ~f ~@s)) blocks))
@@ -174,6 +183,7 @@
        ; Define entry point function
        (main-fn [& args#]
          (let [[cmd-name# all-args#] (split-command args#)
+               _# (println all-args#)
                [cmd# args#] (find-command ~commands cmd-name# all-args#)]
            (if cmd#
              (apply (:body cmd#) args#)
