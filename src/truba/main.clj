@@ -13,7 +13,18 @@
   truba.main
   (:require
      (truba.command repl shell))
-  (:use [neman.main :only [defmain]]))
+  (:use [neman.main :only [defmain]]
+        [truba.build.collector :only [with-collector file-collector]]
+        [clojure.main :only [load-script]]))
+
+(defn load-build [file]
+  (with-collector file-collector
+    (load-script file)))
+
+(defn safe-load-build [file]
+  (try
+    (load-build file)
+    (catch Exception _)))
 
 (defmain
   :header
@@ -27,6 +38,7 @@
      {:name "&describe" :desc "Describe tasks"}
      {:name "&file"     :desc "Use file instead of the default trubafile.clj"}
      {:name "D"         :desc "Set build property" :args "<property>=<value>"}
+     {:name "version"   :desc "Show version information."}
 
      "Runner configuration"
      {:name "&jobs"   :desc "Number of parallel jobs" :args "<num>"}
@@ -42,8 +54,11 @@
     For more info visit http://code.google.com/p/truba/\n
     Copyright (c) 2009. Krešimir Šojat. All rights reserved."]
 
-  (:default [opts #_{:keys [queue skip describe file D] :as opts} _]
-    (println opts "**" _)
+  (:default [{:keys [queue skip describe file D] :as opts} _]
+    (when (:version opts)
+      (println "Truba v0.1")
+      (System/exit 0))
+
     (println "Hello from main"))
 
   (:extra []
@@ -56,4 +71,8 @@
        [{:name "&file" :desc "Use file instead of the default trubafile.clj"}]
 
      [{file :file} _]
-     (println "This will need to open trubafile and load extra commands from there.")))
+     (when-let [build (safe-load-build (or file "trubafile.clj"))]
+       (map
+         (fn [[name {:keys [desc body] :as command}]]
+           [name (assoc command :body (partial body build))])
+         (:commands build)))))

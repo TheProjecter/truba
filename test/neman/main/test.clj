@@ -55,14 +55,3 @@
       [:default [{} '([] a b)]] ["install" [{} '([] c d)]])
     (list
       '(:default [] a b) '(install [] c d))))
-
-(deftest block-map
-  (are [a b] (= a (m/block-map (m/block-seq b)))
-    ; Normal command
-    {"install" [{} '([] a b)]} (list '(install [] a b))
-
-    ; Multiple 'extra' blocks
-    {:extra (list [{} '([] c d)] [{} '([] a b)])}
-    (list
-      '(:extra [] a b) '(:extra [] c d))))
-

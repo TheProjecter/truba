@@ -120,15 +120,16 @@
        (let [specs#    (convert-specs ~specs)
              [f# s#]   (parse args# (:options specs#))
              ~bindings [f# s#]]
-        (map
-          (fn [[name# {desc# :desc :as data#}]]
-            [name# (assoc data# :desc
-                     (fn []
-                       (update-in (desc#) [:options]
-                         (fn [x#]
-                           (concat (:options specs#) x#)))))])
-          (do
-            ~@body))))))
+        [s#
+         (map
+           (fn [[name# {desc# :desc :as data#}]]
+             [name# (assoc data# :desc
+                      (fn []
+                        (update-in (desc#) [:options]
+                          (fn [x#]
+                            (concat (:options specs#) x#)))))])
+           (do
+             ~@body))]))))
 
 (defn find-command [extras cname all-args]
   (loop [[f & r :as xs] extras]
@@ -183,7 +184,6 @@
        ; Define entry point function
        (main-fn [& args#]
          (let [[cmd-name# all-args#] (split-command args#)
-               _# (println all-args#)
                [cmd# args#] (find-command ~commands cmd-name# all-args#)]
            (if cmd#
              (apply (:body cmd#) args#)
