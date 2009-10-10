@@ -139,6 +139,8 @@
           [cmd args]
           (recur r))))))
 
+; XXX Replace :extra with :dynamic
+; XXX Generate help
 (defmacro defmain [& [f s & r :as xs]]
   (let [; Collect metadata and doc string
         [m xs] (split-meta xs)

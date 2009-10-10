@@ -29,4 +29,5 @@
            (c/file-collector c2))))))
 ; XXX Split this
 
+; XXX Define separate file-collector tests
 ;(deftest file-collector)

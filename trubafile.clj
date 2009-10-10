@@ -12,7 +12,12 @@
    'neman.main.test
    'truba.build.collector.test])
 
-(command test [build & args]
+(command test
+  :options
+    [{:name "&verbose" :desc "Verbose output"}]
+
+  [build {verbose? :verbose} _]
+  #_(println verbose?)
   (let [found-ns (atom [])]
     (doseq [t tests]
       (try
