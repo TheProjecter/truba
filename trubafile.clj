@@ -10,6 +10,7 @@
    'neman.cli.test
    'neman.cli.desc.test
    'neman.main.test
+   'truba.graph.test
    'truba.build.collector.test])
 
 (command test
