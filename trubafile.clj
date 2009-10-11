@@ -1,17 +1,14 @@
 
+(require ['truba.ext.clojure :as 'clj])
+
+(def test-dir
+  (java.io.File. "test"))
+
 (add-classpath (.toURL (java.io.File. "test")))
 
 (use
   ['truba.build.command :only ['command]]
   ['truba.unittest])
-
-(def tests
-  ['neman.glob.test
-   'neman.cli.test
-   'neman.cli.desc.test
-   'neman.main.test
-   'truba.graph.test
-   'truba.build.collector.test])
 
 (command test
   :options
@@ -19,7 +16,8 @@
 
   [build {verbose? :verbose} _]
   #_(println verbose?)
-  (let [found-ns (atom [])]
+  (let [tests (map symbol (clj/namespaces-in-dirs (list test-dir)))
+        found-ns (atom [])]
     (doseq [t tests]
       (try
         (require :reload-all t)
