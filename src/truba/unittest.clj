@@ -100,13 +100,15 @@
         wrap (fn [body [vars fixture]]
                `(let [args# ((:setup ~fixture))
                       ~vars args#]
-                  ~body
+                  ~@body
                   (when-let [cleanup# (:cleanup ~fixture)]
                     (cleanup# args#))))
 
         ; New test body with all fixtures added.
-        body (reduce
-               wrap body (partition 2 fixtures))]
+        body (if-let [fixtures (seq (partition 2 fixtures))]
+               (list
+                 (reduce wrap body fixtures))
+               body)]
     `(def ~(with-meta name {:unittest true})
        (fn []
          (let [reports# (atom [])]

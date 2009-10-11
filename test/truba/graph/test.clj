@@ -14,8 +14,16 @@
   (:require [truba.graph :as g])
   (:use truba.unittest))
 
-(deftest tsort
+(def graph-data
+  {:setup
+    (fn []
+      {:a #{:b :c :d} :b #{} :c #{:e :f} :d #{:c} :e #{} :f {}})})
+
+(deftest tsort [graph graph-data]
   (is
     (=
-      (list :f :e :c :b :d :a)
-      (g/tsort {:a #{:b :c :d} :b #{} :c #{:e :f} :d #{:c} :e #{} :f #{}}))))
+      '(:f :e :c :b :d :a) (g/tsort graph))))
+
+(deftest psort [graph graph-data]
+  (is
+    (= '((:a) (:d) (:c) (:f :e :b)) (g/psort graph))))
