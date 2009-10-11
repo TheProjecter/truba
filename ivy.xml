@@ -79,5 +79,13 @@
             name='maven-scm-provider-svnexe'
             rev='1.2'
             conf="*->*,!sources,!javadoc"/>
+
+        <!-- Sesame dependencies -->
+        <dependency
+          org='org.openrdf.sesame'
+          name='sesame'
+          rev='2.3-pr1'>
+          <artifact name='sesame' url='http://downloads.sourceforge.net/project/sesame/Sesame%202/2.3-pr1/openrdf-sesame-2.3-pr1-onejar.jar?use_mirror=garr'/>
+        </dependency>
 	</dependencies>
 </ivy-module>
