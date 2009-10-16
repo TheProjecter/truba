@@ -40,11 +40,22 @@
       '(({:name p1})) p2
       '(({:name p1}) ({:name p2})) p3)))
 
+(deftest resolve-soft-dependencies
+  (let [p1 (p/property :A 1)
+        p2 (p/property :A 2)
+        p3 (p/property P1 3)
+        p4 (p/property P2 [:A P1] [as p1]
+             (apply + p1 as))
+        pm (into {}
+             [p1 p2 p3 p4])]
+    (is
+      (= 6 (get (p/calc-all pm) {:name 'P2})))))
+
 (deftest calc-all
   (let [pm (into {}
-             [(property p1 42)
-              (property p2 [p1] (inc p1))
-              (property p3 [p1 p2] (+ p1 p2))])]
+             [(p/property p1 42)
+              (p/property p2 [p1] (inc p1))
+              (p/property p3 [p1 p2] (+ p1 p2))])]
     (is
       (= {{:name 'p1} 42
           {:name 'p2} 43

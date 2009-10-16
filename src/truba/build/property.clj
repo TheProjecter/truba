@@ -16,6 +16,8 @@
         [truba.build :only [*collector*]]
         [truba.build.selector :only [selector]]))
 
+(declare *properties*)
+
 (defn expand-id* [id]
   (condp #(%1 %2) id
     symbol?  {:name id}
@@ -109,6 +111,34 @@
            (map #(resolve-1 % pk) (:deps v)))])
       pm)))
 
+(defn get-p [r pm]
+  (let [[f & _ :as xs] (resolve-1
+                         (expand-id* r) (set (keys pm)))]
+    (if (:uid f)
+      (map pm xs) (pm f))))
+
+(defmacro with-properties* [pm & [f s & r :as xs]]
+  (let [[deps bindings body] (cond
+                               (and (vector? f) (vector? s))
+                                 [f s r]
+                                (vector? f)
+                                 [f f (next xs)]
+                                :else
+                                 [[] [] xs])]
+    (let [gx (gensym)]
+      `(let [~gx ~pm]
+         (binding [*properties* ~gx]
+           (let ~(vec (interleave bindings
+                                  (map (fn [d] `(get-p '~d ~gx)) deps)))
+             ~@body))))))
+
+(defmacro with-properties
+  {:arglists '([props-map? deps bindings? & body])}
+  [& [f & _ :as xs]]
+  (if (vector? f)
+    `(with-properties* *properties* ~@xs)
+    `(with-properties* ~@xs)))
+
 (defn calc-1 [{:keys [expr deps]} pm]
   (apply expr
     (map
@@ -130,3 +160,34 @@
         (assoc m p (calc-1 (pm p) m)))
       {}
       (-> pm calc-graph tsort))))
+
+(comment
+
+  ; Simple property declaration
+  (property a 42)
+
+  ; Property with named dependencies (no need to provide both deps and bindings)
+  (property b [a]
+    (+ a 1))
+
+  ; Property with docstring.
+  (property src-dir
+    "Directory with source files."
+    [:BaseDir] [base-dir]
+    (java.io.File. base-dir "src"))
+
+  ; Property with complex dependencies.
+  (property b [:BaseDir src-dir] [base-dir src-dir]
+    (java.io.File. base-dir "src"))
+
+  ; Example properties usage without external dependencies
+  (properties
+    a 1
+    b (+ a 1))
+
+  ; Example properties usage with external dependencies
+  (properties [:BaseDir] [base-dir]
+    main-dir (java.io.File. base-dir "main")
+    src-dir  (java.io.File. main-dir "src"))
+
+) ; end of comment
