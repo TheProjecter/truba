@@ -65,6 +65,37 @@
                      (conj xs nil))]
     `(property* ~id ~@xs)))
 
+(defmacro properties
+  "Define multiple named properties."
+  [& [f s & r :as xs]]
+  (let [; Extract global dependencies, bindings and property
+        ; expression pairs
+        [[gd gb] xs] (cond
+                       (and (vector? f) (vector? s))
+                         [[f s] r]
+                       (vector? f)
+                         [[f f] (next xs)]
+                       :else
+                         [[] xs])
+
+        ; Every defined property must depend on all previous defined
+        ; properties in this 'properties' block.
+        ps (reduce
+             (fn [ps [k v]]
+               (conj ps
+                 [k (vec (map first ps)) v]))
+             []
+             (partition 2 xs))
+
+        ; Every defined property must depend on global dependencise
+        ; for this 'properties' block.
+        ps (map
+             (fn [[f s t]]
+               [f (vec (concat s gd)) (vec (concat s gb)) t])
+             ps)]
+    `(do
+       ~@(for [p ps] `(property ~@p)))))
+
 (defn resolve-1 [p pk]
   (seq
     ((selector p) pk)))
