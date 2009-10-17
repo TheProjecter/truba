@@ -12,12 +12,8 @@
 (property :TestDir
   (java.io.File. "test"))
 
-(property :ClojureTestFiles [:TestDir] [test-dirs]
-  (clj/clojure-files test-dirs))
-
-(property :ClojureTestNamespaces [:ClojureTestFiles] [test-files]
-  (filter (complement nil?)
-    (mapcat clj/ns-decl (apply concat test-files))))
+(load
+  "/truba/ext/unittest")
 
 (command test
   :options
