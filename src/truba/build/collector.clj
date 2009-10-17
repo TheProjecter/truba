@@ -34,6 +34,12 @@
 (defmacro with-collector [collector-fn & body]
   `(with-collector* ~collector-fn (fn [] ~@body)))
 
+(defn add-property [{pm :properties :as data} [name specs]]
+  (if (contains? pm name)
+    (throwf "Property %s already defines." name)
+    (assoc-in data
+      [:properties name] specs)))
+
 (defn add-command [data [name _ :as command]]
   (if (contains? (set (map first (:commands data))) name)
     (throwf "Command %s already exists." name)
@@ -53,7 +59,9 @@
       nil
 
     :Property
-      nil
+      (if (empty? (:groups data))
+        (add-property data x)
+        (throwf "Can't declare property outside of the main build group."))
 
     :Command
       (add-command data x)))

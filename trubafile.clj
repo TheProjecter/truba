@@ -1,8 +1,7 @@
 
 (require ['truba.ext.clojure :as 'clj])
 
-(def test-dir
-  (java.io.File. "test"))
+(use ['truba.build.property :only ['property 'calc-all]])
 
 (add-classpath (.toURL (java.io.File. "test")))
 
@@ -10,13 +9,28 @@
   ['truba.build.command :only ['command]]
   ['truba.unittest])
 
+(property :TestDir
+  (java.io.File. "test"))
+
+(property :ClojureTestFiles [:TestDir] [test-dirs]
+  (clj/clojure-files test-dirs))
+
+(property :ClojureTestNamespaces [:ClojureTestFiles] [test-files]
+  (filter (complement nil?)
+    (mapcat clj/ns-decl (apply concat test-files))))
+
 (command test
   :options
     [{:name "&verbose" :desc "Verbose output"}]
 
   [build {verbose? :verbose} _]
-  #_(println verbose?)
-  (let [tests (map symbol (clj/namespaces-in-dirs (list test-dir)))
+  (let [props (calc-all (:properties build))
+        tests (apply concat
+                (map
+                  (fn [[k v]]
+                    (when (= (:type k) :ClojureTestNamespaces)
+                      v))
+                  props))
         found-ns (atom [])]
     (doseq [t tests]
       (try
