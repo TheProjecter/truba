@@ -14,24 +14,10 @@
   (:use neman.ex
         [truba.graph :only [tsort]]
         [truba.build :only [*collector*]]
+        [truba.build.id :only [expand-id* expand-id]]
         [truba.build.selector :only [selector]]))
 
 (declare *properties*)
-
-(defn expand-id* [id]
-  (condp #(%1 %2) id
-    symbol?  {:name id}
-    keyword? {:type id}
-    map?     id
-
-    ; Report invalid property id.
-    (throwf "Invalid property id: %s" id)))
-
-(defn expand-id [id]
-  (let [id (expand-id* id)]
-    (if (:name id)
-      id
-      (assoc id :uid (gensym)))))
 
 (defn set-type [p]
   (with-meta p {:type :Property}))
