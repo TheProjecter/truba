@@ -14,21 +14,6 @@
   (:require [truba.build.property :as p])
   (:use truba.unittest))
 
-(deftest basic-expand-id
-  (are [a b] (= a (p/expand-id* b))
-    {:name 'a}  'a
-    {:type :b}  :b
-    {:x 1 :y 2} {:x 1 :y 2})
-  (is
-    (thrown? (p/expand-id 42))))
-
-(deftest expand-id
-  (is
-    (contains? (p/expand-id :a) :uid))
-  (is
-    (not
-      (contains? (p/expand-id 'a) :uid))))
-
 (deftest resolve-dependencies
   (let [p1 (p/property p1 1)
         p2 (p/property p2 [p1] 2)

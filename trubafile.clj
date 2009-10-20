@@ -34,7 +34,7 @@
         (swap! found-ns conj t)
 
         (catch Exception e
-          (println (.getMessage e)))))
+          (println "Error while loading" t (.getMessage e)))))
 
     (doseq [n @found-ns]
       (println "Running tests in" n)
