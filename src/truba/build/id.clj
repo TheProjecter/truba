@@ -10,7 +10,8 @@
   #^{:author "Krešimir Šojat"
      :license {:name "Eclipse Public License 1.0"
                :url  "http://opensource.org/licenses/eclipse-1.0.php"}}
-  truba.build.id)
+  truba.build.id
+  (:use neman.ex))
 
 (defn expand-id* [id]
   (condp #(%1 %2) id
