@@ -54,13 +54,13 @@
         [n & m] res
         res (cond
               (= " " n)   m
-              (string? n) (.substring n 1)
+              (string? n) (conj m (.substring n 1))
               :else       res)
 
         ; Strip trailing space
         [n m] [(butlast res) (last res)]
         res (cond
               (= " " m)   n
-              (string? m) (.substring m 0 (dec (count m)))
-              :else       res)])
-   res)
+              (string? m) (conj (vec n) (.substring m 0 (dec (count m))))
+              :else       res)]
+   res))
