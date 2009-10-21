@@ -15,6 +15,7 @@
      (truba.command repl shell))
   (:use [neman.main :only [defmain]]
         [truba.build.collector :only [with-collector file-collector]]
+        [truba.build.loader :only [load-buildfile]]
         [clojure.main :only [load-script]]))
 
 (defn load-build [file]
