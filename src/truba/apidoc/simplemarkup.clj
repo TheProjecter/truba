@@ -21,14 +21,14 @@
       "(?:(?<!\\w)_([^_]+)_(?=\\W))|"             ; emphasis (e.g. _text_)
       "(?:(?<!\\w)\\?([^\\?]+)\\?(?=\\W))|"       ; citation (e.g. ?citation?)
       "(?:(?<!\\w)-([^-]+)-(?=\\W))|"             ; deleted  (e.g. -text-)
-      "(?:(?<!\\W)\\+([^\\+]+)\\+(?=\\W))|"       ; inserted (e.g. +text+)
+      "(?:(?<!\\w)\\+([^\\+]+)\\+(?=\\W))|"       ; inserted (e.g. +text+)
       "(?:\\^([^\\^]+)\\^(?=\\W))|"               ; superscript (e.g. ^sup^)
       "(?:~([^~]+)~(?=\\W))|"                     ; subscript (e.g. ~sub~)
-      "(?:(?<!\\W)(?:\\[([^\\]]*)\\]:([^\\s]*)))" ; urls (e.g. [Clojure]:http://clojure.org)
+      "(?:(?<!\\w)(?:\\[([^\\]]*)\\]:([^\\s]*)))" ; urls (e.g. [Clojure]:http://clojure.org)
       "))"
       "|(.*)")))
 
-(defn parse [s]
+(defn parse* [s]
   (mapcat
     (fn [[_ & xs]]
       (let [t (cond
@@ -47,3 +47,20 @@
           (and t x) [t x], t [t], x [x])))
     (re-seq markup-re s)))
 
+(defn parse [s]
+  (let [res (parse* (str " " s " "))
+
+        ; Strip leading space
+        [n & m] res
+        res (cond
+              (= " " n)   m
+              (string? n) (.substring n 1)
+              :else       res)
+
+        ; Strip trailing space
+        [n m] [(butlast res) (last res)]
+        res (cond
+              (= " " m)   n
+              (string? m) (.substring m 0 (dec (count m)))
+              :else       res)])
+   res)

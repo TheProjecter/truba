@@ -35,7 +35,7 @@
 
 (deftest mixed-strings
   (are [a b] (= a (s/parse b))
-    ["hi" [:strong "there"]] "hi *there*"
-    [[:strong "hi"] "there"] "*hi* there"
-    ["who" [:strong "are"] "you?"] "who *are* you?"))
+    ["hi " [:strong "there"]] "hi *there*"
+    [[:strong "hi"] " there"] "*hi* there"
+    ["who " [:strong "are"] " you?"] "who *are* you?"))
 
