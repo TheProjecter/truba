@@ -43,6 +43,15 @@
 (defmethod report [:is :error] [{expr :expr message :message}]
   (format "[ERROR]   %s with message: %s" expr message))
 
+(defmethod report [:is= :pass] [{expr1 :expr1 expr2 :expr2}]
+  (format "[SUCCESS] %s = %s" expr1 expr2))
+
+(defmethod report [:is= :fail] [{expr1 :expr1 expr2 :expr2}]
+  (format "[FAIL]    (not= %s %s)" expr1 expr2))
+
+(defmethod report [:is= :error] [{:keys [expr1 expr2 message]}]
+  (format "[ERROR]   (= %s %s) with message: %s" expr1 expr2 message))
+
 (defmethod report [:are :pass] [{:keys [expr vars args]}]
   (format "[SUCCESS] %s for %s %s" expr vars args))
 
@@ -51,6 +60,16 @@
 
 (defmethod report [:are :error] [{:keys [expr vars args message]}]
   (format "[ERROR]   %s for %s %s with message: %s" expr vars args message))
+
+(defmethod report [:are= :pass] [{:keys [expr1 expr2 vars args]}]
+  (format "[SUCCESS] (= %s %s) for %s %s" expr1 expr2 vars args))
+
+(defmethod report [:are= :fail] [{:keys [expr1 expr2 vars args]}]
+  (format "[FAIL]    (= %s %s) for %s %s" expr1 expr2 vars args))
+
+(defmethod report [:are= :error] [{:keys [expr1 expr2 vars args message]}]
+  (format "[ERROR]   (= %s %s) for %s %s with message: %s"
+          expr1 expr2 vars args message))
 
 (defn update-context [x desc]
   (update-in x [:context]
@@ -76,6 +95,13 @@
        (try-assert
          {:status (if ~expr :pass :fail)}))))
 
+(defmacro is= [expr1 expr2]
+  `(*report*
+     (merge
+       {:assert :is= :expr1 '~expr1 :expr2 '~expr2}
+       (try-assert
+         {:status (if (= ~expr1 ~expr2) :pass :fail)}))))
+
 (defmacro are* [vars expr & args]
   `(*report*
      (merge
@@ -89,6 +115,20 @@
     `(do
        ~@(map
            (fn [as] `(are* ~bindings ~expr ~@as)) args))))
+
+(defmacro are=* [vars expr1 expr2 & args]
+  `(*report*
+     (merge
+       {:assert :are= :expr1 '~expr1 :expr2 '~expr2 :vars '~vars :args '~args}
+       (try-assert
+         (let [~vars ~(vec args), result# (= ~expr1 ~expr2)]
+           {:status (if result# :pass :fail)})))))
+
+(defmacro are= [vars expr1 expr2 & args]
+  (let [args (partition (count vars) args)]
+    `(do
+       ~@(map
+           (fn [as] `(are=* ~vars ~expr1 ~expr2 ~@as)) args))))
 
 (defmacro deftest [name & [f & _ :as xs]]
   (let [; Split fixtures dependencies
