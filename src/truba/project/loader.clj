@@ -10,10 +10,12 @@
   #^{:author "Krešimir Šojat"
      :license {:name "Eclipse Public License 1.0"
                :url  "http://opensource.org/licenses/eclipse-1.0.php"}}
-  truba.build.loader
+  truba.project.loader
   (:import (java.io File)
            (clojure.lang Compiler))
-  (:use [truba.build.collector :only [with-collector file-collector]]))
+  (:use
+     [truba.event :only [emit]]
+     [truba.build.collector :only [with-collector file-collector]]))
 
 (defn load-buildfile [file]
   (let [b-name (gensym "trubafile_")
@@ -33,9 +35,12 @@
            [generator :only [generator]]))
 
       ; Add basedir of trubafile to classpath.
-      (let [dir (.. (File. file) getParentFile toURI)]
+      ; XXX Fix this
+      #_(let [dir (.. (File. file) getParentFile toURI)]
         (add-classpath dir))
 
+      ; XXX Fix this
+      #_(emit :loading-started file)
       (merge
         (with-collector file-collector
           (Compiler/loadFile file))

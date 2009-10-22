@@ -17,5 +17,10 @@
 (def repl
   (command repl []
     (in-ns 'user)
+
+    ; Replace doc with truba.apidoc.repl/doc macro.
+    (ns-unmap *ns* 'doc)
+    (use ['truba.apidoc.repl :only ['doc]])
+
     (clojure.main/repl)))
 

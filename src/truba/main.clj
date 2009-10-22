@@ -14,17 +14,12 @@
   (:require
      (truba.command repl shell))
   (:use [neman.main :only [defmain]]
-        [truba.build.collector :only [with-collector file-collector]]
-        [truba.build.loader :only [load-buildfile]]
+        [truba.project.loader :only [load-buildfile]]
         [clojure.main :only [load-script]]))
-
-(defn load-build [file]
-  (with-collector file-collector
-    (load-script file)))
 
 (defn safe-load-build [file]
   (try
-    (load-build file)
+    (load-buildfile file)
     (catch Exception _)))
 
 (defmain
