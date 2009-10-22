@@ -2,7 +2,6 @@
 (use ['truba.build.property :only ['calc-all]])
 
 (add-classpath (.toURL (File. "test")))
-
 (use
   ['truba.unittest])
 

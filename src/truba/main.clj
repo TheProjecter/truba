@@ -17,10 +17,25 @@
         [truba.project.loader :only [load-buildfile]]
         [clojure.main :only [load-script]]))
 
-(defn safe-load-build [file]
-  (try
-    (load-buildfile file)
-    (catch Exception _)))
+(use
+  ['truba.event :only ['*listeners* 'on]])
+
+(defn load-build [file]
+  (let [build (atom {})]
+    (binding [*listeners* (atom {})]
+      (on :loading-started
+        (fn [_ build file]
+          (println "Loading file " file)))
+
+      (on :loading-finished
+        (fn [_ build file data]
+          (println "Loading finished")))
+
+      (on :loading-failed
+        (fn [_ build file err]
+          (println "Loading failed" (.getMessage err))))
+
+      (load-buildfile build file))))
 
 (defmain
   :header
@@ -67,7 +82,7 @@
        [{:name "&file" :desc "Use file instead of the default trubafile.clj"}]
 
      [{file :file} _]
-     (when-let [build (safe-load-build (or file "trubafile.clj"))]
+     (when-let [build (load-build (or file "trubafile.clj"))]
        (map
          (fn [[name {:keys [desc body] :as command}]]
            [name (assoc command :body (partial body build))])

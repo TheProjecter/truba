@@ -41,32 +41,27 @@
  [[c1 c2] commands
   [p1 p2] properties]
 
-  (is
-    (= {:commands [c1 c2]}
-       (-> {}
-         (c/file-collector c1)
-         (c/file-collector c2))))
-  (is
-    (= {:properties (into {} [p1 p2])}
-       (-> {}
-         (c/file-collector p1)
-         (c/file-collector p2)))))
+  (are= [a b] a b
+    {:commands [c1 c2]}
+    (-> {}
+      (c/file-collector c1) (c/file-collector c2))
+
+    {:properties (into {} [p1 p2])}
+    (-> {}
+      (c/file-collector p1) (c/file-collector p2))))
 
 (deftest build-collector
   [[c1 c2] commands
    [p1 p2] properties]
 
-  (is
-    (= {:commands [c1 c2]}
-       (-> {}
-         (c/build-collector c1)
-         (c/build-collector c2))))
+  (are= [a b] a b
+    {:commands [c1 c2]}
+    (-> {}
+      (c/build-collector c1) (c/build-collector c2))
 
-  (is
-    (= {:properties (into {} [p1 p2])}
-       (-> {}
-         (c/build-collector p1)
-         (c/build-collector p2)))))
+    {:properties (into {} [p1 p2])}
+    (-> {}
+      (c/build-collector p1) (c/build-collector p2))))
 
 (deftest group-collector
   [[c1 c2] commands

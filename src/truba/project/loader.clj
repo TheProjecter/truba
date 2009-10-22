@@ -17,7 +17,7 @@
      [truba.event :only [emit]]
      [truba.build.collector :only [with-collector file-collector]]))
 
-(defn load-buildfile [file]
+(defn load-buildfile [build file]
   (let [b-name (gensym "trubafile_")
         b-ns   (create-ns b-name)]
     (binding [*ns* b-ns]
@@ -41,11 +41,15 @@
       #_(let [dir (.. (File. file) getParentFile toURI)]
         (add-classpath dir))
 
-      ; XXX Fix this
-      #_(emit :loading-started file)
-      (merge
-        (with-collector file-collector
-          (Compiler/loadFile file))
-        {:Finalizer
-          (fn []
-            (remove-ns b-name))}))))
+      (emit :loading-started build file)
+      (try
+        (let [res (merge
+                    (with-collector file-collector
+                      (Compiler/loadFile file))
+                    {:Finalizer
+                      (fn []
+                        (remove-ns b-name))})]
+          (emit :loading-finished build file res)
+          res)
+        (catch Throwable t
+          (emit :loading-failed build file t))))))
