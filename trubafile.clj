@@ -1,12 +1,9 @@
-
 (require ['truba.ext.clojure :as 'clj])
+(use ['truba.build.property :only ['calc-all]])
 
-(use ['truba.build.property :only ['property 'calc-all]])
-
-(add-classpath (.toURL (java.io.File. "test")))
+(add-classpath (.toURL (File. "test")))
 
 (use
-  ['truba.build.command :only ['command]]
   ['truba.unittest])
 
 (property :TestDir

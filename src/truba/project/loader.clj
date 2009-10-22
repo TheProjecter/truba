@@ -25,11 +25,13 @@
       (refer-clojure)
 
       ; Standard imports
-      (import '(java.io File))
+      (import '(java.io File)
+              '(java.net URL URI))
 
       ; Truba parts initialy available in trubafile.
       (use
         '(truba.build
+           [command :only [command]]
            [property :only [property properties]]
            [task :only [task]]
            [generator :only [generator]]))
