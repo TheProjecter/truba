@@ -19,9 +19,9 @@
   `(do
      ~@(map (fn [x] `(assert ~x)) xs)))
 
-(defmacro pfn [& xs]
+(defmacro pfn [f s & xs]
   `(fn [pm#]
-     (with-properties pm#
+     (with-properties pm# ~f ~s
        (fn [] ~@xs))))
 
 (defn set-type [t]
@@ -42,7 +42,7 @@
 
         [f & r] xs]
     (if (set? f)
-      `(task* ~id ~(list f) ~r)
+      `(task* ~id ~(list [] [] f) ~r)
       (let [[[df & dx] [bf & bx] & others] xs]
         (assert-all
           (not (seq others)) (= df :deps) (= bf :body))

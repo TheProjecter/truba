@@ -14,7 +14,9 @@
   (:use [truba.ext.clojure :only [clojure-files ns-decl]]
         [truba.build.property :only [property]]))
 
-; XXX Depends on externaly defined property :TestDir
+(property :TestDir
+  (java.io.File. "test"))
+
 (property :ClojureTestFiles [:TestDir] [test-dirs]
   (clojure-files test-dirs))
 

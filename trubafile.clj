@@ -5,11 +5,25 @@
 (use
   ['truba.unittest])
 
-(property :TestDir
-  (java.io.File. "test"))
-
 (load
   "/truba/ext/unittest")
+
+(task :Test #{} [:TestDir :ClojureTestNamespaces] [test-dir test-ns]
+  (let [found-ns (atom [])]
+    (doseq [t test-ns]
+      (try
+        (require :reload-all t)
+        (swap! found-ns t)
+
+        (catch Exception e
+          (println "Error while loading" t (.getMessage e))))
+
+    (doseq [n @found-ns]
+      (println "Running tests in" n)
+      (let [test-fns (filter test? (vals (ns-publics n)))]
+        (print-reports
+          (filter #(not= :pass (:status %))
+            (mapcat (fn [t] (t)) test-fns))))))))
 
 (command test
   :options
