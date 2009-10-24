@@ -41,3 +41,4 @@
 (defmethod expand :table [[_ & data]]
   (apply
     vector :table (map #(apply expand-all %) data)))
+
