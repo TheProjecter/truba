@@ -12,7 +12,7 @@
   (let [found-ns (atom [])]
     (doseq [t test-ns]
       (try
-        (require :reload-all t)
+        (require t)
         (swap! found-ns t)
 
         (catch Exception e
@@ -38,9 +38,10 @@
                       v))
                   props))
         found-ns (atom [])]
+
     (doseq [t tests]
       (try
-        (require :reload-all t)
+        (require t)
         (swap! found-ns conj t)
 
         (catch Exception e

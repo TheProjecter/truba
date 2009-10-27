@@ -54,6 +54,12 @@
 (defn add-task [data task]
   (try-to-add data :tasks task "Task"))
 
+(defn add-finalizer [data finalizer]
+  (throwf "Finalizer collector not implemented.")); XXX add this
+
+(defn add-listener [data listener]
+  (throwf "Listener collector not implemented.")); XXX add this
+
 (defn add-generator [data generator]
   (try-to-add data :generators generator "Generator"))
 
@@ -83,10 +89,10 @@
         (throwf "Can't define sub group.")
 
       :Finalizer
-        nil; XXX add this
+        add-finalizer
 
       :Listener
-        nil; XXX add this
+        add-listener
 
       :Task
         (if-not (data? :groups)
@@ -106,7 +112,9 @@
       :Command
         (if-not (data? :groups)
           (add-command data x)
-          (throwf "Can't declare command outside of the main build group.")))))
+          (throwf "Can't declare command outside of the main build group."))
+      ; Unknown element
+      (throwf "Can't collect element of type: %s" (type x)))))
 
 (defn build-collector [data x]
   (let [add-with #(%1 data x)]
@@ -114,12 +122,14 @@
       (condp #(= %1 (type %2)) x
         :Build     (throwf "Build declarations can't be nested.")
         :Group     add-group
-        :Finalizer nil; XXX add this
-        :Listener  nil; XXX add this
+        :Finalizer add-finalizer
+        :Listener  add-listener
         :Task      add-task
         :Generator add-generator
         :Property  add-property
-        :Command   add-command))))
+        :Command   add-command
+        ; Unknown element
+        (throwf "Can't collect element of type: %s" (type x))))))
 
 (defn group-collector [data x]
   (let [add-with #(%1 data x)]
@@ -127,35 +137,70 @@
       (condp #(= %1 (type %2)) x
         :Build     (throwf "Can't declare build group inside the sub group.")
         :Group     add-group
-        :Finalizer nil; XXX add this
-        :Listener  nil; XXX add this
+        :Finalizer add-finalizer
+        :Listener  add-listener
         :Task      add-task
         :Generator add-generator
         :Property  add-property
-        :Command   (throwf "Can't declare commaind inside the sub group.")))))
+        :Command   (throwf "Can't declare commaind inside the sub group.")
+        ; Unknown element
+        (throwf "Can't collect element of type: %s" (type x))))))
 
-(defn fragment-collector [data x]
+(defn build-fragment-collector [data x]
   (let [add-with #(%1 data x)]
     (add-with
       (condp #(= %1 (type %2)) x
         :Build     (throwf "Can't declare group inside the fragment.")
         :Group     (throwf "Can't declare group inside the fragment.")
-        :Finalizer nil; XXX add this
-        :Listener  nil; XXX add this
+        :Finalizer (throwf "Can't declare finalizer inside the fragment.")
+        :Listener  add-listener
         :Task      add-task
         :Generator add-generator
         :Property  add-property
-        :Command   (throwf "Can't declare command inside the fragment.")))))
+        :Command   add-command
+        ; Unknown element
+        (throwf "Can't collect element of type: %s" (type x))))))
 
-(defn generator-collector [data x]
+(defn group-fragment-collector [data x]
+  (let [add-with #(%1 data x)]
+    (add-with
+      (condp #(= %1 (type %2)) x
+        :Build     (throwf "Can't declare group inside the fragment.")
+        :Group     (throwf "Can't declare group inside the fragment.")
+        :Finalizer (throwf "Can't declare finalizer inside the fragment.")
+        :Listener  add-listener
+        :Task      add-task
+        :Generator add-generator
+        :Property  add-property
+        :Command   (throwf "Can't declare command inside the fragment.")
+        ; Unknown element
+        (throwf "Can't collect element of type: %s" (type x))))))
+
+(defn property-generator-collector [data x]
   (let [add-with #(%1 data x)]
     (add-with
       (condp #(= %1 (type %2)) x
         :Build     (throwf "Can't declare group inside the generator.")
         :Group     (throwf "Can't declare group inside the generator.")
-        :Finalizer nil; XXX add this
-        :Listener  nil; XXX add this
-        :Task      add-task
+        :Finalizer (throwf "Can't declare finalizer inside the generator.")
+        :Listener  add-listener
+        :Task      (throwf "Can't declare task inside the property generator.")
         :Generator add-generator
         :Property  add-property
-        :Command   (throwf "Can't declare command inside the generator.")))))
+        :Command   (throwf "Can't declare command inside the generator.")
+        ; Unknown element
+        (throwf "Can't collect element of type: %s" (type x))))))
+
+(defn task-generator-collector [data x]
+  (let [add-with #(%1 data x)]
+    (add-with
+      (condp #(= %1 (type %2)) x
+        :Build     (throwf "Can't declare group inside the generator.")
+        :Group     (throwf "Can't declare group inside the generator.")
+        :Finalizer (throwf "Can't declare finalizer inside the generator.")
+        :Listener  add-listener
+        :Task      add-task
+        :Property  add-property
+        :Command   (throwf "Can't declare command inside the generator.")
+        ; Unknown element
+        (throwf "Can't collect element of type: %s" (type x))))))

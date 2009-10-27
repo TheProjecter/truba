@@ -79,34 +79,66 @@
          (c/group-collector p1)
          (c/group-collector p2)))))
 
-(deftest fragment-collector
+(deftest build-fragment-collector
+  [[c1 c2] commands
+   [p1 p2] properties]
+
+  (is
+    (= {:properties (into {} [p1 p2])}
+       (-> {}
+         (c/build-fragment-collector p1)
+         (c/build-fragment-collector p2))))
+
+  (is
+    (= {:commands [c1 c2]}
+       (-> {}
+         (c/build-fragment-collector c1)
+         (c/build-fragment-collector c2)))))
+
+(deftest group-fragment-collector
   [[c1 c2] commands
    [p1 p2] properties]
 
   (is
     (thrown?
       (-> {}
-        (c/fragment-collector c1)
-        (c/fragment-collector c2))))
+        (c/group-fragment-collector c1)
+        (c/group-fragment-collector c2))))
 
   (is
     (= {:properties (into {} [p1 p2])}
        (-> {}
-         (c/fragment-collector p1)
-         (c/fragment-collector p2)))))
+         (c/group-fragment-collector p1)
+         (c/group-fragment-collector p2)))))
 
-(deftest generator-collector
+(deftest property-generator-collector
   [[c1 c2] commands
    [p1 p2] properties]
 
   (is
     (thrown?
       (-> {}
-        (c/generator-collector c1)
-        (c/generator-collector c2))))
+        (c/property-generator-collector c1)
+        (c/property-generator-collector c2))))
 
   (is
     (= {:properties (into {} [p1 p2])}
        (-> {}
-         (c/generator-collector p1)
-         (c/generator-collector p2)))))
+         (c/property-generator-collector p1)
+         (c/property-generator-collector p2)))))
+
+(deftest task-generator-collector
+  [[c1 c2] commands
+   [p1 p2] properties]
+
+  (is
+    (thrown?
+      (-> {}
+        (c/task-generator-collector c1)
+        (c/task-generator-collector c2))))
+
+  (is
+    (= {:properties (into {} [p1 p2])}
+       (-> {}
+         (c/task-generator-collector p1)
+         (c/task-generator-collector p2)))))
