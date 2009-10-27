@@ -10,21 +10,18 @@
   #^{:author "Krešimir Šojat"
      :license {:name "Eclipse Public License 1.0"
                :url  "http://opensource.org/licenses/eclipse-1.0.php"}}
-  truba.build.generator.test
-  (:require [truba.build.generator :as g])
-  (:use truba.unittest))
+  truba.build.resolver
+  (:require [truba.build.property :as p]))
 
-(deftest expand-unknown
-  (is
-    (thrown? (g/expand-key [] [] [] '(:unknown (println "hi"))))))
+;(defn post-collect [{pm :props tm :tasks gm :groups :as data}]
+;  (let [pm (p/calc-all pm)
+;        tm (t/resolve-all tm pm)
+;        tm (into (empty tm)
+;            (map
+;              (fn [[k v]] [k (update-in v [:action] partial pm)])
+;              tm))]
+;    [pm tm gm]))
 
-(deftest unmatched-properties
-  (let [g (g/generator wee [a] [type id]
-             (:match
-                true)
-             (:each
-                nil))]
-    (is
-      (thrown? ((:match (second g)) {})))
-    (is
-      (thrown? ((:each (second g)) {})))))
+(defn resolve-all [{pm :properties :as data}]
+  (let [pm (p/calc-all pm)]
+    (assoc data :properties pm)))

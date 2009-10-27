@@ -23,21 +23,8 @@
         (body-fn))
       @data)))
 
-; XXX Remove this later
-(defn post-collect [data]
-  data)
-;(defn post-collect [{pm :props tm :tasks gm :groups :as data}]
-;  (let [pm (p/calc-all pm)
-;        tm (t/resolve-all tm pm)
-;        tm (into (empty tm)
-;            (map
-;              (fn [[k v]] [k (update-in v [:action] partial pm)])
-;              tm))]
-;    [pm tm gm]))
-
 (defn with-collector* [collector-fn body-fn]
-  (post-collect
-    (collect collector-fn body-fn)))
+  (collect collector-fn body-fn))
 
 (defmacro with-collector [collector-fn & body]
   `(with-collector* ~collector-fn (fn [] ~@body)))

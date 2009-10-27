@@ -15,7 +15,13 @@
            (clojure.lang Compiler))
   (:use
      [truba.event :only [emit]]
-     [truba.build.collector :only [with-collector file-collector]]))
+     [truba.build.collector :only [with-collector file-collector]]
+     [truba.build.resolver :only [resolve-all]]))
+
+(defn collect-buildfile [file]
+  (resolve-all
+    (with-collector file-collector
+      (Compiler/loadFile file))))
 
 (defn load-buildfile [build file]
   (let [b-name (gensym "trubafile_")
@@ -44,8 +50,7 @@
       (emit :loading-started build file)
       (try
         (let [res (merge
-                    (with-collector file-collector
-                      (Compiler/loadFile file))
+                    (collect-buildfile file)
                     {:Finalizer
                       (fn []
                         (remove-ns b-name))})]

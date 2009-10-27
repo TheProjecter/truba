@@ -1,5 +1,4 @@
 (require ['truba.ext.clojure :as 'clj])
-(use ['truba.build.property :only ['calc-all]])
 
 (add-classpath (.toURL (File. "test")))
 (use
@@ -30,7 +29,7 @@
     [{:name "&verbose" :desc "Verbose output"}]
 
   [build {verbose? :verbose} _]
-  (let [props (calc-all (:properties build))
+  (let [props (:properties build)
         tests (apply concat
                 (map
                   (fn [[k v]]
