@@ -11,17 +11,24 @@
      :license {:name "Eclipse Public License 1.0"
                :url  "http://opensource.org/licenses/eclipse-1.0.php"}}
   truba.repository
-  (:use neman.ex)
+  (:require [truba.feed :as feed])
+  (:use neman.ex
+        [truba.ext.fs :only [rmdir]])
   (:import (java.io File IOException)
            (java.net URI)))
 
+(def repo-settings
+  {:author {}})
+
 ; XXX use event system
 (defn create! [#^URI base]
-  (let [dir (File. base)]
+  (let [dir (File. base)
+        feed-file (File. dir "atom.xml")]
     (if (.exists dir)
       (throwf "Can't create repository, location %s already exists." dir)
       (try
         (.mkdirs dir)
+        (feed/write! feed-file (feed/create-feed-doc repo-settings))
         ; XXX emit ok
         ; XXX write initial feed file
 
@@ -37,4 +44,4 @@
       (not (.isDirectory dir))
         (throwf "Invalid repository location: %s" base); XXX use emit
       :else
-        (.delete dir))))
+        (rmdir dir))))

@@ -54,8 +54,8 @@
 ; XXX add this
 (def repo-list
   (command "repo:list" []
-    :desc
-      "Show all known repositories."
+    ;:desc
+    ;  "Show all known repositories."
     (println "List repositories command is not implemented.")))
 
 ; XXX add this
