@@ -12,7 +12,7 @@
                :url  "http://opensource.org/licenses/eclipse-1.0.php"}}
   truba.main
   (:require
-     (truba.command repl shell))
+     (truba.command repl shell repo))
   (:use [neman.main :only [defmain]]
         [truba.project.loader :only [load-buildfile]]
         [clojure.main :only [load-script]]))
@@ -75,7 +75,10 @@
   (:extra []
     (list
       truba.command.repl/repl
-      truba.command.shell/shell))
+      truba.command.shell/shell
+      truba.command.repo/repo-create
+      truba.command.repo/repo-remove
+      truba.command.repo/repo-list))
 
   (:extra
      :options
