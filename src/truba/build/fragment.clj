@@ -10,18 +10,22 @@
   #^{:author "Krešimir Šojat"
      :license {:name "Eclipse Public License 1.0"
                :url  "http://opensource.org/licenses/eclipse-1.0.php"}}
-  truba.ext.unittest
-  (:use [truba.ext.clojure :only [clojure-files ns-decl]]
-        [truba.build.property :only [property]]))
+  truba.build.fragment)
 
-(property :TestDir
-  (java.io.File. "test"))
+(def +fragment+ (atom {}))
 
-(property :ClojureTestFiles [:TestDir] [test-dirs]
-  (clojure-files test-dirs))
+(defn add-fragment [fm f]
+  (apply assoc fm f))
 
-(property :ClojureTestNamespaces [:ClojureTestFiles] [test-files]
-  (filter (complement nil?)
-    (mapcat ns-decl (apply concat test-files))))
+(defn add-fragment! [fragment]
+  (swap! +fragments+ add-fragment fragment))
 
+(defmacro deffragment* [id & body]
+  `(vector '~id (fn [] ~@body)))
 
+(defmacro deffragment [id & [f & r :as xs]]
+  (let [; Extract docstring (unused for now).
+        [m xs] (if (string? f)
+                 [f r]
+                 [nil xs])]
+    `(deffragment* ~id ~@xs)))

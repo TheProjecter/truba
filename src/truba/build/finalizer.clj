@@ -10,18 +10,14 @@
   #^{:author "Krešimir Šojat"
      :license {:name "Eclipse Public License 1.0"
                :url  "http://opensource.org/licenses/eclipse-1.0.php"}}
-  truba.ext.unittest
-  (:use [truba.ext.clojure :only [clojure-files ns-decl]]
-        [truba.build.property :only [property]]))
+  truba.build.finalizer
+  (:use [truba.build :only [*collector*]]))
 
-(property :TestDir
-  (java.io.File. "test"))
+(defn create-finalizer [f]
+  (*collector*
+    (with-meta
+      [f] {:type :Finalizer})))
 
-(property :ClojureTestFiles [:TestDir] [test-dirs]
-  (clojure-files test-dirs))
-
-(property :ClojureTestNamespaces [:ClojureTestFiles] [test-files]
-  (filter (complement nil?)
-    (mapcat ns-decl (apply concat test-files))))
-
+(defmacro finalizer [& body]
+  `(create-finalizer (fn [] ~@body)))
 

@@ -12,6 +12,7 @@
                :url  "http://opensource.org/licenses/eclipse-1.0.php"}}
   truba.build.generator
   (:use neman.ex
+        [truba.build :onyl [*collector*]]
         [truba.build.id :only [expand-id]]
         [truba.build.property :only [with-properties]]))
 
@@ -39,10 +40,18 @@
       (with-properties pm# ~deps ~vars
         (fn [] ~@body)))])
 
+(defn set-type [x]
+  (with-meta x {:type :Generator}))
+
 (defn create-generator [id body]
   (assert (contains? body :match))
   (assert (contains? body :each))
-  [(expand-id id) (merge {:once (fn [_])} body)])
+  (set-type
+    [(expand-id id) (merge {:once (fn [_])} body)]))
+
+(defmacro generator* [& xs]
+  `(*collector*
+     (create-generator ~@xs)))
 
 (defmacro generator [id & [f s t & r :as xs]]
   (let [[pd pb qid xs] (cond
@@ -57,4 +66,4 @@
                  (fn [x]
                    (expand-key pd pb qid x))
                  xs))]
-    `(create-generator '~id ~body)))
+    `(generator* '~id ~body)))

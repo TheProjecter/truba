@@ -52,3 +52,16 @@
         (print-reports
           (filter #(not= :pass (:status %))
             (mapcat (fn [t] (t)) test-fns)))))))
+
+(use ['truba.project :only ['project]])
+#_(project truba
+  "Truba project management system for Clojure."
+
+  (command test
+    :desc
+      "Run unit tests."
+    :options
+      [{:name "&verbose" :desc "Verbose output"}]
+
+    [build {verbose? :verbose} _]
+    (println "Test!")))

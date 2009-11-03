@@ -10,18 +10,13 @@
   #^{:author "Krešimir Šojat"
      :license {:name "Eclipse Public License 1.0"
                :url  "http://opensource.org/licenses/eclipse-1.0.php"}}
-  truba.ext.unittest
-  (:use [truba.ext.clojure :only [clojure-files ns-decl]]
-        [truba.build.property :only [property]]))
+  truba.project.util)
 
-(property :TestDir
-  (java.io.File. "test"))
-
-(property :ClojureTestFiles [:TestDir] [test-dirs]
-  (clojure-files test-dirs))
-
-(property :ClojureTestNamespaces [:ClojureTestFiles] [test-files]
-  (filter (complement nil?)
-    (mapcat ns-decl (apply concat test-files))))
-
+(defmacro switch-ns [nns & body]
+  `(let [cns# *ns*]
+     (with-local-vars [res# nil]
+       (set! *ns* ~nns)
+       (var-set res# (do ~@body))
+       (set! *ns* cns#)
+       (var-get res#))))
 

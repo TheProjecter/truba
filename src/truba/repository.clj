@@ -35,6 +35,6 @@
       (not (.exists dir))
         (throwf "Repository not found: %s" base); XXX use emit
       (not (.isDirectory dir))
-        (throwf "Invalid repoistory location: %s" base); XXX use emit
+        (throwf "Invalid repository location: %s" base); XXX use emit
       :else
         (.delete dir))))

@@ -28,3 +28,27 @@
       (thrown? ((:match (second g)) {})))
     (is
       (thrown? ((:each (second g)) {})))))
+
+(deftest match-task-id
+  (let [g (g/generator g [type id]
+             (:match
+               (and (= :Task type) (= :X (:type id))))
+             (:each
+                nil))
+        body (second g)
+        mfn  ((:match body) {})]
+    (is
+      (true? (mfn [:Task {:type :X}])))))
+
+(deftest match-property-id
+  (let [g (g/generator g [type id]
+             (:match
+               (and (= :Property type) (= :X (:type id))))
+             (:each
+                nil))
+        body (second g)
+        mfn  ((:match body) {})]
+    (is
+      (true? (mfn [:Property {:type :X}])))))
+
+; XXX Test that matched task/property is generated

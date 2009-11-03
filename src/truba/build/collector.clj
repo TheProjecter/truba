@@ -41,8 +41,11 @@
 (defn add-task [data task]
   (try-to-add data :tasks task "Task"))
 
-(defn add-finalizer [data finalizer]
-  (throwf "Finalizer collector not implemented.")); XXX add this
+(defn add-finalizer [{f1 :finalizers :as data} [f2]]
+  (assoc data :finalizers
+    (if f1
+      (fn [] (f1) (f2))
+      f2)))
 
 (defn add-listener [data listener]
   (throwf "Listener collector not implemented.")); XXX add this
@@ -62,46 +65,50 @@
 
 (defn file-collector [data x]
   (let [data? (fn [key]
-                (not (empty? (get data key))))]
-    (condp #(= %1 (type %2)) x
-      :Build
-        (cond
-          (data? :groups)
-            (throwf "Can't define top level build group, one is already defined.")
+                (not (empty? (get data key))))
+        add-with #(%1 data x)]
+    (add-with
+      (condp #(= %1 (type %2)) x
+        :Build
+          (cond
+            (data? :groups)
+              (throwf "Can't define top level build group, one is already defined.")
 
-          (or (data? :tasks) (data? :generators) (data? :commands))
-            (throwf "Can't define build group, items outside of it already defined."))
+            (or (data? :tasks) (data? :generators) (data? :commands))
+              (throwf "Can't define build group, items outside of it already defined.")
+            :else
+              add-group)
 
-      :Group
-        (throwf "Can't define sub group.")
+        :Group
+          (throwf "Can't define sub group.")
 
-      :Finalizer
-        add-finalizer
+        :Finalizer
+          add-finalizer
 
-      :Listener
-        add-listener
+        :Listener
+          add-listener
 
-      :Task
-        (if-not (data? :groups)
-          (add-task data x)
-          (throwf "Can't declare task outside of the main build group."))
+        :Task
+          (if-not (data? :groups)
+            add-task
+            (throwf "Can't declare task outside of the main build group."))
 
-      :Generator
-        (if-not (data? :groups)
-          (add-generator data x)
-          (throwf "Can't declare generator outside of the main build group."))
+        :Generator
+          (if-not (data? :groups)
+            add-generator
+            (throwf "Can't declare generator outside of the main build group."))
 
-      :Property
-        (if-not (data? :groups)
-          (add-property data x)
-          (throwf "Can't declare property outside of the main build group."))
+        :Property
+          (if-not (data? :groups)
+            add-property
+            (throwf "Can't declare property outside of the main build group."))
 
-      :Command
-        (if-not (data? :groups)
-          (add-command data x)
-          (throwf "Can't declare command outside of the main build group."))
-      ; Unknown element
-      (throwf "Can't collect element of type: %s" (type x)))))
+        :Command
+          (if-not (data? :groups)
+            add-command
+            (throwf "Can't declare command outside of the main build group."))
+        ; Unknown element
+        (throwf "Can't collect element of type: %s" (type x))))))
 
 (defn build-collector [data x]
   (let [add-with #(%1 data x)]
@@ -187,6 +194,7 @@
         :Finalizer (throwf "Can't declare finalizer inside the generator.")
         :Listener  add-listener
         :Task      add-task
+        :Generator add-generator
         :Property  add-property
         :Command   (throwf "Can't declare command inside the generator.")
         ; Unknown element

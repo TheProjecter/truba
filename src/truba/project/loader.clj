@@ -16,17 +16,21 @@
   (:use
      [truba.event :only [emit]]
      [truba.build.collector :only [with-collector file-collector]]
-     [truba.build.resolver :only [resolve-all]]))
+     [truba.build.resolver :only [resolve-all]]
+     [truba.build.group :only [expand-child-groups]]
+     [truba.project.util :only [switch-ns]]))
 
 (defn collect-buildfile [file]
-  (resolve-all
+  (->
     (with-collector file-collector
-      (Compiler/loadFile file))))
+      (Compiler/loadFile file))
+    (expand-child-groups nil)
+    (resolve-all)))
 
 (defn load-buildfile [build file]
   (let [b-name (gensym "trubafile_")
         b-ns   (create-ns b-name)]
-    (binding [*ns* b-ns]
+    (switch-ns b-ns
       ; Add clojure.core
       (refer-clojure)
 
