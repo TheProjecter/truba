@@ -12,8 +12,19 @@
                :url  "http://opensource.org/licenses/eclipse-1.0.php"}}
   truba.feed
   (:import (java.io File FileWriter BufferedWriter)
+           (java.util UUID Date)
            (org.jdom Namespace Document Element)
-           (org.jdom.output XMLOutputter Format)))
+           (org.jdom.output XMLOutputter Format)
+           (org.apache.commons.lang.time DateFormatUtils)))
+
+(defn now []
+  (Date.))
+
+(def date-format
+  DateFormatUtils/ISO_DATETIME_TIME_ZONE_FORMAT)
+
+(defn now-str []
+  (.format date-format (now)))
 
 (def pretty-format
   (Format/getPrettyFormat))
@@ -59,6 +70,16 @@
         (.setNamespace atom-ns)
         (.setText (:email author))))))
 
+(defn feed-id []
+  (=> :id
+    (.setNamespace atom-ns)
+    (.setText (str "uuid:" (UUID/randomUUID)))))
+
+(defn feed-updated []
+  (=> :updated
+    (.setNamespace atom-ns)
+    (.setText (now-str))))
+
 (defn create-feed-doc [settings]
   (doto (Document.)
     (.setRootElement
@@ -70,5 +91,7 @@
                        (merge
                          {:name  "Unknown"
                           :uri   "http://code.google.com/p/truba/"}
-                         (:author settings))))))))
+                         (:author settings))))
+        (.addContent (feed-id))
+        (.addContent (feed-updated))))))
 

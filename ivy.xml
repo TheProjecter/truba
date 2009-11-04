@@ -33,6 +33,10 @@
 			<artifact name='commons-codec'/>
 			<exclude org='junit'/>
 		</dependency>
+        <dependency org='commons-lang' name='commons-lang' rev='2.4'>
+          <artifact name='commons-lang'/>
+          <exclude org='junit'/>
+        </dependency>
 
 		<!-- Apache Ant and Ivy dependencies -->
         <dependency org='org.apache.ant' name='ant' rev='1.7.1'
