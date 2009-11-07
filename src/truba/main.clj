@@ -78,7 +78,8 @@
       truba.command.shell/shell
       truba.command.repo/repo-create
       truba.command.repo/repo-remove
-      truba.command.repo/repo-list))
+      truba.command.repo/repo-list
+      truba.command.repo/repo-info))
 
   (:extra
      :options

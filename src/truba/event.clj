@@ -17,7 +17,7 @@
   *listeners*)
 
 (defn merge-listeners [& mseq]
-  (reduce (partial merge-with merge) mseq))
+  (reduce (partial merge-with concat) mseq))
 
 (defn on
   ([event callback-fn]
@@ -31,3 +31,9 @@
 
 (defn emit [event & args]
   (apply emit-to @*listeners* event args))
+
+(defmacro deflisteners [name & body]
+  `(defn ~name []
+     (binding [*listeners* (atom {})]
+       ~@body
+       (deref *listeners*))))

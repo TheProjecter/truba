@@ -11,37 +11,52 @@
      :license {:name "Eclipse Public License 1.0"
                :url  "http://opensource.org/licenses/eclipse-1.0.php"}}
   truba.repository
-  (:require [truba.feed :as feed])
+  (:require [truba.feed :as feed]
+            [neman.xml :as xml])
   (:use neman.ex
-        [truba.ext.fs :only [rmdir]])
+        [truba.ext.fs :only [rmdir]]
+        [truba.event :only [emit-to merge-listeners]]
+        [truba.repository.listeners :only
+          [standard-listeners standard-reporters]])
   (:import (java.io File IOException)
            (java.net URI)))
+
+(def listeners
+  (merge-listeners
+    (standard-listeners) (standard-reporters)))
 
 (def repo-settings
   {:author {}})
 
-; XXX use event system
-(defn create! [#^URI base]
+(defn create* [listeners #^URI base]
   (let [dir (File. base)
-        feed-file (File. dir "atom.xml")]
+        feed-file (File. dir "atom.xml")
+        emit (partial emit-to listeners)]
     (if (.exists dir)
-      (throwf "Can't create repository, location %s already exists." dir)
+      (emit :repository-creation-failed dir "Location already exists.")
       (try
         (.mkdirs dir)
-        (feed/write! feed-file (feed/create-feed-doc repo-settings))
-        ; XXX emit ok
-        ; XXX write initial feed file
+        (xml/write! feed-file (feed/create-feed-doc repo-settings))
+        (emit :repository-created dir)
 
         (catch IOException e
-          ; XXX emit don't throw
-          (throwf "Failed!"))))))
+          (emit :repository-creation-failed dir (.getMessage e)))))))
 
-(defn remove! [#^URI base]
-  (let [dir (File. base)]
+(defn create! [#^URI base]
+  (create* listeners base))
+
+(defn remove* [listeners #^URI base]
+  (let [dir (File. base)
+        emit (partial emit-to listeners)]
     (cond
       (not (.exists dir))
-        (throwf "Repository not found: %s" base); XXX use emit
+        (emit :repository-removal-failed dir "Repository not found.")
       (not (.isDirectory dir))
-        (throwf "Invalid repository location: %s" base); XXX use emit
+        (emit :repository-removal-failed dir "Invalid repository location.")
       :else
-        (rmdir dir))))
+        (do
+          (rmdir dir)
+          (emit :repository-removed dir)))))
+
+(defn remove! [#^URI base]
+  (remove* listeners base))

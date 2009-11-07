@@ -14,6 +14,24 @@
   (:require [truba.event :as ev])
   (:use truba.unittest))
 
+(deftest merge-listeners
+  (let [ls1 (binding [ev/*listeners* (atom {})]
+              (ev/on :one
+                (fn [& _]))
+              (ev/on :two
+                (fn [& _]))
+              @ev/*listeners*)
+        ls2 (binding [ev/*listeners* (atom {})]
+              (ev/on :one
+                (fn [& _]))
+              (ev/on :two
+                (fn [& _]))
+              @ev/*listeners*)
+        all (ev/merge-listeners ls1 ls2)]
+    (are= [a b] a (count (get all b))
+      2 :one
+      2 :two)))
+
 (deftest add-listeners
   (binding [ev/*listeners* (atom {})]
     (ev/on :some-event

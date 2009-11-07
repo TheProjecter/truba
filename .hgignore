@@ -2,3 +2,4 @@ syntax: glob
 lib/*
 cache/*
 *.vim
+var/*

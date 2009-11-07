@@ -11,10 +11,10 @@
      :license {:name "Eclipse Public License 1.0"
                :url  "http://opensource.org/licenses/eclipse-1.0.php"}}
   truba.feed
-  (:import (java.io File FileWriter BufferedWriter)
-           (java.util UUID Date)
+  (:require [neman.xml :as xml])
+  (:use [neman.xml :only [=> write!]])
+  (:import (java.util UUID Date)
            (org.jdom Namespace Document Element)
-           (org.jdom.output XMLOutputter Format)
            (org.apache.commons.lang.time DateFormatUtils)))
 
 (defn now []
@@ -26,72 +26,49 @@
 (defn now-str []
   (.format date-format (now)))
 
-(def pretty-format
-  (Format/getPrettyFormat))
-
-(def xml-outputter
-  (XMLOutputter. pretty-format))
-
-(defmacro => [tag & body]
-  `(doto (Element. (name ~tag)) ~@body))
-
-(defn write! [#^File path doc]
-  (with-open [out (-> path (FileWriter.) (BufferedWriter.))]
-    (.output xml-outputter doc out)))
-
 (def atom-ns
   (Namespace/getNamespace "http://www.w3.org/2005/Atom"))
 
 (defn feed-generator []
-  (=> :generator
-    (.setNamespace atom-ns)
+  (=> [:generator atom-ns]
     (.setAttribute "version" "v0.1a")
     (.setAttribute "uri" "http://code.google.com/p/truba/")
     (.setText "Truba project management tool for Clojure.")))
 
 (defn feed-title []
-  (=> :title
-    (.setNamespace atom-ns)
+  (=> [:title atom-ns]
     (.setText "Truba Repository")))
 
 (defn feed-author [author]
-  (=> :author
-    (.setNamespace atom-ns)
+  (=> [:author atom-ns]
     (.addContent
-      (=> :name
-        (.setNamespace atom-ns)
+      (=> [:name atom-ns]
         (.setText (:name author))))
     (.addContent
-      (=> :uri
-        (.setNamespace atom-ns)
+      (=> [:uri atom-ns]
         (.setText (:uri author))))
     (.addContent
-      (=> :email
-        (.setNamespace atom-ns)
+      (=> [:email atom-ns]
         (.setText (:email author))))))
 
 (defn feed-id []
-  (=> :id
-    (.setNamespace atom-ns)
+  (=> [:id atom-ns]
     (.setText (str "uuid:" (UUID/randomUUID)))))
 
 (defn feed-updated []
-  (=> :updated
-    (.setNamespace atom-ns)
+  (=> [:updated atom-ns]
     (.setText (now-str))))
 
 (defn create-feed-doc [settings]
-  (doto (Document.)
-    (.setRootElement
-      (=> :feed
-        (.setNamespace atom-ns)
-        (.addContent (feed-title))
-        (.addContent (feed-generator))
-        (.addContent (feed-author
-                       (merge
-                         {:name  "Unknown"
-                          :uri   "http://code.google.com/p/truba/"}
-                         (:author settings))))
-        (.addContent (feed-id))
-        (.addContent (feed-updated))))))
+  (xml/doc
+    (=> [:feed atom-ns]
+      (.addContent (feed-title))
+      (.addContent (feed-generator))
+      (.addContent (feed-author
+                     (merge
+                       {:name  "Unknown"
+                        :uri   "http://code.google.com/p/truba/"}
+                       (:author settings))))
+      (.addContent (feed-id))
+      (.addContent (feed-updated)))))
 

@@ -11,8 +11,10 @@
      :license {:name "Eclipse Public License 1.0"
                :url  "http://opensource.org/licenses/eclipse-1.0.php"}}
   truba.command.repo
+  (:require [truba.conf :as conf])
   (:use [neman.main :only [command]]
-        [truba.repository :only [create! remove!]])
+        [truba.repository :only [create! remove!]]
+        [truba.repository.core :only [load-repolist]])
   (:import (java.io File)))
 
 ; XXX Commands that don't have :options should not be parsed
@@ -51,12 +53,17 @@
           (println (.getMessage e))))
       (println "Missing repository location."))))
 
-; XXX add this
 (def repo-list
   (command "repo:list" []
     ;:desc
     ;  "Show all known repositories."
-    (println "List repositories command is not implemented.")))
+    []
+    (let [repolist (load-repolist conf/repolist-file)]
+      (if (empty? repolist)
+        (println "No repositories found.")
+        (do
+          (doseq [r repolist]
+            (printf "Repository: %s\n" r)))))))
 
 ; XXX add this
 (def repo-add
@@ -65,4 +72,12 @@
       "Add new repository to the list of known repositories."
     []
     (println "Add repository command is not implemented.")))
+
+; XXX add this
+(def repo-info
+  (command "repo:info"
+    ;:desc
+    ;  "Show information about the given repository."
+    [repo-dir]
+    (println "Repository info is not implemented.")))
 

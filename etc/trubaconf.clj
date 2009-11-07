@@ -3,5 +3,5 @@
 ;; This file will be loaded in truba.conf namespace.
 ;;
 
-(println "Loaded trubaconf.clj")
+#_(println "Loaded trubaconf.clj")
 
