@@ -61,9 +61,9 @@
      (apply ~'-main *command-line-args*)))
 
 ; Command variant without command line options.
-(defmacro command-1 [_ [bindings & body]]
+(defmacro command-1 [specs [bindings & body]]
   `(hash-map
-     :desc (fn [])
+     :desc (fn [] ~specs)
      :body (fn [& ~bindings]
              ~@body)))
 
@@ -79,7 +79,7 @@
 (defmacro command* [name specs xs]
   `(vector
      (as-name '~name)
-     ~(if (empty? specs)
+     ~(if (empty? (:options specs))
         `(command-1 ~specs ~xs) `(command-2 ~specs ~xs))))
 
 (defmacro command [name & xs]

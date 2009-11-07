@@ -17,8 +17,6 @@
         [truba.repository.core :only [load-repolist]])
   (:import (java.io File)))
 
-; XXX Commands that don't have :options should not be parsed
-
 (defn create-repo-uri [repo]
   (let [repo-path (File. repo)
         repo-path (if (.isAbsolute repo-path)
@@ -29,8 +27,8 @@
 
 (def repo-create
   (command "repo:create"
-    ;:desc
-    ;  "Create new local repository."
+    :desc
+      "Create new local repository."
     [repo-dir]
     (if repo-dir
       (try
@@ -42,8 +40,8 @@
 
 (def repo-remove
   (command "repo:remove"
-    ;:desc
-    ;  "Remove local repository."
+    :desc
+      "Remove local repository."
     [repo-dir]
     (if repo-dir
       (try
@@ -55,8 +53,8 @@
 
 (def repo-list
   (command "repo:list" []
-    ;:desc
-    ;  "Show all known repositories."
+    :desc
+      "Show all known repositories."
     []
     (let [repolist (load-repolist conf/repolist-file)]
       (if (empty? repolist)
@@ -76,8 +74,8 @@
 ; XXX add this
 (def repo-info
   (command "repo:info"
-    ;:desc
-    ;  "Show information about the given repository."
+    :desc
+      "Show information about the given repository."
     [repo-dir]
     (println "Repository info is not implemented.")))
 

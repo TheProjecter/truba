@@ -152,9 +152,17 @@
     `(def ~(with-meta name {:unittest true})
        (fn []
          (let [reports# (atom [])]
-           (binding [*report* (fn [x#] (swap! reports# conj x#))]
-             ~@body
-             (deref reports#)))))))
+           (binding [*report* (fn [x#] (swap! reports# conj x#))
+                     *out*    (java.io.StringWriter.)
+                     *err*    (java.io.StringWriter.)]
+             (try
+               ~@body
+               (catch Exception e#
+                 (println (.getMessage e#)))); XXX Return exception
+               (do; XXX Return *out* and *error* with rest of the reports.
+                 (doto System/out (.print (str *out*)) .flush)
+                 (doto System/out (.print (str *err*)) .flush))
+               (deref reports#)))))))
 
 (defn test? [v]
   (:unittest (meta v)))
